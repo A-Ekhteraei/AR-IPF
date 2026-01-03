@@ -6,6 +6,46 @@
         <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+        
+        <!-- Custom script for rotation toggle -->
+        <script>
+            AFRAME.registerComponent('toggle-rotation', {
+                init: function() {
+                    this.isRotating = false;
+                    this.rotationSpeed = 36; // 6 RPM = 36 degrees per second (360° × 6 ÷ 60)
+                    
+                    // Click event listener
+                    this.el.addEventListener('click', () => {
+                        this.toggleRotation();
+                    });
+                    
+                    // For mobile touch
+                    this.el.addEventListener('touchstart', () => {
+                        this.toggleRotation();
+                    });
+                },
+                
+                toggleRotation: function() {
+                    if (this.isRotating) {
+                        // Stop rotation
+                        this.el.removeAttribute('animation__rotation');
+                        this.isRotating = false;
+                        console.log("Rotation stopped");
+                    } else {
+                        // Start rotation - 6 RPM = 10 seconds for 360° rotation
+                        this.el.setAttribute('animation__rotation', {
+                            property: 'rotation',
+                            to: {x: 0, y: 0, z: 360},
+                            dur: 10000, // 10 seconds for 360° at 6 RPM
+                            loop: true,
+                            easing: 'linear'
+                        });
+                        this.isRotating = true;
+                        console.log("Rotation started at 6 RPM");
+                    }
+                }
+            });
+        </script>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
@@ -42,6 +82,7 @@
                     gltf-model="#animated-asset"
                     class="clickable"
                     gesture-handler
+                    toggle-rotation  <!-- Added this component -->
                 ></a-entity>
             </a-marker>
 
