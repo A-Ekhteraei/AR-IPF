@@ -1,92 +1,42 @@
-<!doctype html>
-<html>
-    <head>
-        <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-        <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-        
-        <!-- Custom script for rotation toggle -->
-        <script>
-            AFRAME.registerComponent('toggle-rotation', {
-                init: function() {
-                    this.isRotating = false;
-                    this.rotationSpeed = 36; // 6 RPM = 36 degrees per second (360° × 6 ÷ 60)
-                    
-                    // Click event listener
-                    this.el.addEventListener('click', () => {
-                        this.toggleRotation();
-                    });
-                    
-                    // For mobile touch
-                    this.el.addEventListener('touchstart', () => {
-                        this.toggleRotation();
-                    });
-                },
-                
-                toggleRotation: function() {
-                    if (this.isRotating) {
-                        // Stop rotation
-                        this.el.removeAttribute('animation__rotation');
-                        this.isRotating = false;
-                        console.log("Rotation stopped");
-                    } else {
-                        // Start rotation - 6 RPM = 10 seconds for 360° rotation
-                        this.el.setAttribute('animation__rotation', {
-                            property: 'rotation',
-                            to: {x: 0, y: 360, z: 0},
-                            dur: 10000, // 10 seconds for 360° at 6 RPM
-                            loop: true,
-                            easing: 'linear'
-                        });
-                        this.isRotating = true;
-                        console.log("Rotation started at 6 RPM");
-                    }
-                }
+<script>
+    AFRAME.registerComponent('toggle-rotation', {
+        init: function() {
+            this.isRotating = false;
+            this.rotationAngle = 0;
+            
+            this.el.addEventListener('click', () => {
+                this.toggleRotation();
             });
-        </script>
-    </head>
-
-    <body style="margin: 0; overflow: hidden;">
-        <a-scene
-            vr-mode-ui="enabled: false;"
-            loading-screen="enabled: false;"
-            renderer="logarithmicDepthBuffer: true;"
-            arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-            id="scene"
-            embedded
-            gesture-detector
-        >
-            <a-assets>
-                <a-asset-item
-                    id="animated-asset"
-                    src="assets/asset.glb"
-                ></a-asset-item>
-            </a-assets>
-
-            <a-marker
-                id="animated-marker"
-                type="pattern"
-                preset="custom"
-                url="assets/marker.patt"
-                raycaster="objects: .clickable"
-                emitevents="true"
-                cursor="fuse: false; rayOrigin: mouse;"
-                id="markerA"
-            >
-                <a-entity
-                    id="bowser-model"
-                    scale="10 10 10"
-                    animation-mixer="loop: repeat"
-                    gltf-model="#animated-asset"
-                    class="clickable"
-                    gesture-handler
-                    toggle-rotation  <!-- Added this component -->
-                ></a-entity>
-            </a-marker>
-
-            <a-entity camera></a-entity>
-        </a-scene>
-    </body>
-</html>
+            
+            this.el.addEventListener('touchstart', () => {
+                this.toggleRotation();
+            });
+        },
+        
+        toggleRotation: function() {
+            if (this.isRotating) {
+                // Stop any ongoing animation
+                const anim = this.el.components['animation__rotation'];
+                if (anim) {
+                    this.el.removeAttribute('animation__rotation');
+                }
+                this.isRotating = false;
+            } else {
+                // Remove any existing animation first
+                this.el.removeAttribute('animation__rotation');
+                
+                // Force A-Frame to clean up
+                setTimeout(() => {
+                    this.el.setAttribute('animation__rotation', {
+                        property: 'rotation',
+                        to: {x: 0, y: 360, z: 0},
+                        dur: 10000,
+                        loop: true,
+                        easing: 'linear'
+                    });
+                    this.isRotating = true;
+                }, 50); // Small delay to ensure cleanup
+            }
+        }
+    });
+</script>
